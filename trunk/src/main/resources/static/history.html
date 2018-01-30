@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<!-- ZUI 标准版压缩后的 CSS 文件 -->
+	<link rel="stylesheet" href="./css/zui.min.css" />
+	<!-- ZUI Javascript 依赖 jQuery -->
+	<script src="./lib/jquery/jquery.js"></script>
+	<!-- ZUI 标准版压缩后的 JavaScript 文件 -->
+	<script src="./js/zui.min.js"></script>
+	<!-- 自定义业务 JavaScript 文件 -->
+	<script src="avril.js"></script>
+	<script type="text/javascript">
+$(document).ready(function(){
+	reloadData();	
+	setTimeout(initParam(), 100);
+});
+
+function reloadData(){
+	AVRIL.loadStageList(loadStageListBack);
+}
+
+function loadStageListBack(data){
+	$stageTable = $("#stageTable");
+	$stageTable.empty(); //清空	
+	if(data!=null && data.data!=null && data.data.length>0){
+		$data = data.data;
+		var ihtml = "";
+		for(var i=0; i<$data.length; i++){
+			var res = 0;
+			res = $data[i].stageBill-$data[i].stageBack-$data[i].stageGift-$data[i].upBill+$data[i].upBack+$data[i].upGift;	
+			ihtml+=("<tr>"
+					+"<td><a href=\"javascript:checkDelete('"+$data[i].stageId+"')\"><i class=\"icon icon-minus-sign\"></i></a></td>"
+					+"<td><a href=\"javascript:goUrlFromHistory('"+$data[i].stageId+"','"+$data[i].stageName+"', "+$data[i].status+");\">"+$data[i].stageName+"</a></td>"
+					+"<td>"+($data[i].element=='0'?'--':$data[i].element)+"</td>"
+					+"<td>"+$data[i].stageBill+"</td>"
+					+"<td>"+$data[i].stageBack+"</td>"
+					+"<td>"+$data[i].stageGift+"</td>"
+					+"<td>"+$data[i].upBill+"</td>"
+					+"<td>"+$data[i].upBack+"</td>"
+					+"<td>"+$data[i].upGift+"</td>"
+					+"<td><span class=\"label "+(res>0?"label-success":"label-danger")+"\">"+res+"</span></td>"
+					+"</tr>");
+		}
+		$stageTable.append(ihtml);
+	}
+}
+
+function initParam(){
+	var e = getQueryStringByName('e');
+	if(e=='1'){
+		showJLWarning('请先新建或选取期别! ');
+	}
+}
+
+function goUrlFromHistory(sid, sname, ss){
+	AVRIL.setStage(sid, sname, ss);
+	window.location.href = "manage.html";
+}
+
+function checkDelete(stageId){
+	$("#stageIdForDel").val(stageId);
+	$('#deleteStageModel').modal({
+	    keyboard : true,
+	    show     : true
+	});	
+}
+
+function deleteStage(){
+	AVRIL.deleteStage($('#stageIdForDel', ).val() , deleteStageBack);	
+}
+
+function deleteStageBack(data){
+	$('#deleteStageModel').modal('hide');
+	showJLSuccess('删除期号成功!');
+	reloadData();
+}
+
+function addStage(){
+	AVRIL.addStage(addStageBack);
+}
+
+function addStageBack(data){
+	if(data!=null && data.stageId!=null){
+		showJLSuccess('新增期号成功: '+data.stageName);
+	}
+	reloadData();11
+}
+
+
+</script>
+
+</head>
+
+<body >
+<!-- 头部信息 -->
+<div class="header">
+<ul class="nav nav-secondary">
+  <li><a href="people.html">下家管理</a></li>
+  <li class="active"><a href="javascript:void(0);">期号管理</a></li>
+  <li><a href="manage.html">数据管理</a></li>
+  <li><a href="record.html">数据录入</a></li>
+  <li><a href="config.html">系统配置</a></li>
+</ul>
+</div>
+
+<h3>最新资料</h3>
+<div class="cards">
+<a class="card col-md-4 col-sm-6 col-lg-3" href="###">
+  <img src="docs/img/img2.jpg" alt="">
+  <div class="card-heading"><strong>良辰美景</strong></div>
+  <div class="card-content text-muted">良辰美景奈何天，赏心乐事谁家院。</div>
+</a>
+
+<a class="card col-md-4 col-sm-6 col-lg-3" href="###">
+  <img src="docs/img/img2.jpg" alt="">
+  <div class="card-heading"><strong>良辰美景</strong></div>
+  <div class="card-content text-muted">良辰美景奈何天，赏心乐事谁家院。</div>
+</a>
+
+<a class="card col-md-4 col-sm-6 col-lg-3" href="###">
+  <img src="docs/img/img2.jpg" alt="">
+  <div class="card-heading"><strong>良辰美景</strong></div>
+  <div class="card-content text-muted">良辰美景奈何天，赏心乐事谁家院。</div>
+</a>
+
+<a class="card col-md-4 col-sm-6 col-lg-3" href="###">
+  <img src="docs/img/img2.jpg" alt="">
+  <div class="card-heading"><strong>良辰美景</strong></div>
+  <div class="card-content text-muted">良辰美景奈何天，赏心乐事谁家院。</div>
+</a>
+</div>
+<h3>历史数据<a type="button" onclick="addStage();"><i class="icon icon-plus-sign"></i>&nbsp;新增</a></h3>
+<table class="table table-hover table-condensed">
+  <thead>
+    <tr>
+      <th>操作</th>
+      <th>期号</th>
+      <th>特号</th>      
+      <th>总量</th>
+      <th>返利</th>
+      <th>结算</th>
+      <th>上报</th>
+      <th>上报返利</th>
+      <th>上报结算</th>
+      <th>赢亏</th>      
+    </tr>
+  </thead>
+  <tbody id="stageTable">
+    
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="10" align="center"><font color='red'>提示：赢亏=(总量-返利-结算)+(上报返利+上报结算-上报)</font></td>
+    </tr>
+  </tfoot>  
+</table>
+
+
+<!-- 提示 --> 
+<div id="deleteStageModel" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+        <h4 class="modal-title">警告</h4>
+      </div>
+      <div class="modal-body">
+        <p>执行删除会清空当期所有数据，请慎重考虑！</p>
+      </div>
+      <div class="modal-footer">
+      	<input type="hidden" id="stageIdForDel"></input>
+        <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+        <button type="button" class="btn btn-primary" onclick="deleteStage();">删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.StatisticsMapper">
+
+<!-- 查询号码与波色 生肖对应关系 -->
+<select id="queryElementOnColorAnima"  resultType="java.util.Map" >
+	select e.element, t1.goods_name as color, t2.goods_name as animal from tb_elements e 
+	left outer join (
+		select g1.goods_name, g1.goods_id, e1.element_id from (
+			select * from tb_goods where goods_name in ('红', '蓝', '绿')
+		) g1 inner join tb_goods_element e1 on g1.goods_id = e1.goods_id
+	) t1 on e.element = t1.element_id
+	left outer join (
+		select g2.goods_name, g2.goods_id, e2.element_id from (
+			select * from tb_goods where goods_name in ('鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪')
+		) g2 inner join tb_goods_element e2 on g2.goods_id = e2.goods_id
+	) t2 on e.element = t2.element_id
+	order by e.element asc
+</select>
+
+
+<!-- 根据交易元素详情按元素统计 -->
+<select id="queryTradeDetailStatistics"  resultType="java.util.Map" parameterType="java.util.Map" > 
+	select e.element, IFNULL(t.efee, 0) efee from tb_elements e
+	left outer join (
+		select element, sum(efee) efee from (
+			select d.*, h.status from 
+			(select trade_id, element, efee from tb_trade_detail 
+			<where>
+				<if test="tradeDetail.stageId != null">AND stage_id = #{tradeDetail.stageId} </if>
+				<if test="tradeDetail.persionId != null">AND persion_id = #{tradeDetail.persionId} </if>
+			</where>
+			) d 
+			RIGHT OUTER JOIN tb_trade h on d.trade_id=h.trade_id 
+		) k where status=0 group by element
+	) t on e.element = t.element order by e.element asc
+</select>
+
+
+</mapper>   

@@ -1,0 +1,15 @@
+*{
+	margin:0;
+	padding:0;
+}
+html,body{
+	height:100%;
+}
+.header{position:fixed; height:56px; width:100%; background-color:#4CAF50}
+.bottom{position:fixed; height:50px; width:100%; bottom:0px; background-color:#4CAF50}
+.wrap{padding-top:56px;}
+.main,.right {float:left;  height:800px; }
+.main { width:100%;  } 
+.right { width:218px; margin-left:-218px; }  
+.mainIn {margin:0 218px 0 0; height:100%;}
+.inputheader{padding-top:9px;}

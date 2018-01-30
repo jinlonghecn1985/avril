@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.GoodsMapper">
+
+<!-- Result Map-->
+<resultMap id="GoodsResultMap" type="com.jing.avril.model.entity.Goods">
+	<id column="goods_id" property="goodsId"/>
+	<result column="goods_name" property="goodsName"/>
+	<result column="goods_key" property="goodsKey"/>
+	<result column="goods_back" property="goodsBack"/>
+	<result column="goods_bonus" property="goodsBonus"/>
+	<result column="goods_note" property="goodsNote"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_goods_item">
+	goods_id, goods_name, goods_key, goods_back, goods_bonus, goods_note, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_goods_query_nowhere">
+		<if test="goods.goodsId != null">AND goods_id like concat(#{goods.goodsId}, '%') </if>
+		<if test="goods.goodsName != null">AND goods_name like concat(#{goods.goodsName}, '%') </if>
+		<if test="goods.goodsKey != null">AND goods_key like concat(#{goods.goodsKey}, '%') </if>
+		<if test="goods.goodsBack != null">AND goods_back = #{goods.goodsBack} </if>
+		<if test="goods.goodsBonus != null">AND goods_bonus = #{goods.goodsBonus} </if>
+		<if test="goods.goodsNote != null">AND goods_note like concat(#{goods.goodsNote}, '%') </if>
+</sql>
+   
+<!-- 插入 分组信息 -->
+<insert id="addGoods" parameterType="com.jing.avril.model.entity.Goods" > 	
+ 	INSERT INTO tb_goods  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="goodsId != null"> goods_id,</if>
+		<if test="goodsName != null"> goods_name,</if>
+		<if test="goodsKey != null"> goods_key,</if>
+		<if test="goodsBack != null"> goods_back,</if>
+		<if test="goodsBonus != null"> goods_bonus,</if>
+		<if test="goodsNote != null"> goods_note,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="goodsId != null"> #{goodsId},</if>
+		<if test="goodsName != null"> #{goodsName},</if>
+		<if test="goodsKey != null"> #{goodsKey},</if>
+		<if test="goodsBack != null"> #{goodsBack},</if>
+		<if test="goodsBonus != null"> #{goodsBonus},</if>
+		<if test="goodsNote != null"> #{goodsNote},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 分组信息 -->  
+<update id="modifyGoods" parameterType="com.jing.avril.model.entity.Goods" >
+  	UPDATE tb_goods SET
+	<trim suffixOverrides=",">
+		<if test="goodsName != null"> goods_name = #{goodsName}, </if>
+		<if test="goodsKey != null"> goods_key = #{goodsKey}, </if>
+		<if test="goodsBack != null"> goods_back = #{goodsBack}, </if>
+		<if test="goodsBonus != null"> goods_bonus = #{goodsBonus}, </if>
+		<if test="goodsNote != null"> goods_note = #{goodsNote}, </if>
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE goods_id = #{goodsId}
+</update>
+ 
+<!-- 删除 分组信息 -->
+<delete id="dropGoodsByGoodsId" parameterType="java.lang.String">
+	DELETE FROM tb_goods WHERE goods_id = #{goodsId}
+</delete> 
+
+<!-- 根据标识查询 分组信息 -->
+<select id="queryGoodsByGoodsId"  resultMap="GoodsResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_goods_item"/>
+	FROM tb_goods WHERE goods_id = #{goodsId}
+</select>
+
+<!-- 根据属性查询分组信息 -->
+<select id="queryGoodsByProperty"  resultMap="GoodsResultMap" parameterType="map">
+	SELECT 
+	<include refid="sql_goods_item"/>
+	FROM tb_goods 
+	<where>
+		<if test="goods.goodsKeyMax != null">AND cast(goods_key as unsigned int) &gt; #{goods.goodsKeyMax} </if>
+		<if test="goods.goodsKeyMin != null">AND cast(goods_key as unsigned int) &lt; #{goods.goodsKeyMin} </if>
+		<include refid="sql_goods_query_nowhere"/>
+	</where>
+	order by LENGTH(goods_key) asc,  goods_key asc
+</select>
+
+<!-- 根据分组信息属性与分页信息分页查询分组信息信息 -->
+<select id="queryGoodsForPage"  resultMap="GoodsResultMap" >
+	SELECT 
+	<include refid="sql_goods_item"/>
+	FROM tb_goods 
+	<where>
+		<include refid="sql_goods_query_nowhere"/>
+	</where>
+</select>
+
+<select id="queryGoodsByElementId" resultMap="GoodsResultMap" parameterType="int">
+select <include refid="sql_goods_item"/> from (
+select goods_id goodsid from tb_goods_element where element_id=#{elementId} )
+e LEFT OUTER JOIN tb_goods g on g.goods_id=e.goodsid
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_goods
+</delete> 
+
+</mapper>   

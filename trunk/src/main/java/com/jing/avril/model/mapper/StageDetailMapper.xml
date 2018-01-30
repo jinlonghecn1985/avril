@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.StageDetailMapper">
+
+<!-- Result Map-->
+<resultMap id="StageDetailResultMap" type="com.jing.avril.model.entity.StageDetail">
+	<id column="bill_id" property="billId"/>
+	<result column="stage_id" property="stageId"/>
+	<result column="element" property="element"/>
+	<result column="upbill" property="upbill"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_stageDetail_item">
+	bill_id, stage_id, element, upbill, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_stageDetail_query_nowhere">
+		<if test="stageDetail.billId != null">AND bill_id like concat(#{stageDetail.billId}, '%') </if>
+		<if test="stageDetail.stageId != null">AND stage_id like concat(#{stageDetail.stageId}, '%') </if>
+		<if test="stageDetail.element != null">AND element = #{stageDetail.element} </if>
+</sql>
+   
+<!-- 插入 期号交易数据 -->
+<insert id="addStageDetail" parameterType="com.jing.avril.model.entity.StageDetail" > 	
+ 	INSERT INTO tb_stage_detail  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="billId != null"> bill_id,</if>
+		<if test="stageId != null"> stage_id,</if>
+		<if test="element != null"> element,</if>
+		<if test="upbill != null"> upbill,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="billId != null"> #{billId},</if>
+		<if test="stageId != null"> #{stageId},</if>
+		<if test="element != null"> #{element},</if>
+		<if test="upbill != null"> #{upbill},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 期号交易数据 -->  
+<update id="modifyStageDetail" parameterType="com.jing.avril.model.entity.StageDetail" >
+  	UPDATE tb_stage_detail SET
+	<trim suffixOverrides=",">
+		<if test="stageId != null"> stage_id = #{stageId}, </if>
+		<if test="element != null"> element = #{element}, </if>
+		<if test="upbill != null"> upbill = #{upbill}, </if>
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE bill_id = #{billId}
+</update>
+ 
+<!-- 删除 期号交易数据 -->
+<delete id="dropStageDetailByBillId" parameterType="java.lang.String">
+	DELETE FROM tb_stage_detail WHERE bill_id = #{billId}
+</delete> 
+
+<!-- 根据标识查询 期号交易数据 -->
+<select id="queryStageDetailByBillId"  resultMap="StageDetailResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_stageDetail_item"/>
+	FROM tb_stage_detail WHERE bill_id = #{billId}
+</select>
+
+<!-- 根据属性查询期号交易数据 -->
+<select id="queryStageDetailByProperty"  resultMap="StageDetailResultMap" parameterType="com.jing.avril.model.entity.StageDetail">
+	SELECT 
+	<include refid="sql_stageDetail_item"/>
+	FROM tb_stage_detail 
+	<where>
+		<include refid="sql_stageDetail_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据期号交易数据属性与分页信息分页查询期号交易数据信息 -->
+<select id="queryStageDetailForPage"  resultMap="StageDetailResultMap" >
+	SELECT 
+	<include refid="sql_stageDetail_item"/>
+	FROM tb_stage_detail 
+	<where>
+		<include refid="sql_stageDetail_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_stage_detail
+</delete> 
+
+<!-- 根据期次删除全部信息 -->
+<delete id="clearDataOnStageId" parameterType="String">
+	DELETE FROM tb_stage_detail where stage_id = #{val}
+</delete>
+</mapper>   

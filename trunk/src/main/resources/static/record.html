@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- ZUI 标准版压缩后的 CSS 文件 -->
+<link rel="stylesheet" href="./css/zui.min.css" />
+<!-- ZUI Javascript 依赖 jQuery -->
+<script src="./lib/jquery/jquery.js"></script>
+<!-- ZUI 标准版压缩后的 JavaScript 文件 -->
+<script src="./js/zui.min.js"></script>
+<!-- 自定义业务 JavaScript 文件 -->
+<script src="avril.js"></script>
+<style type="text/css">
+.eleNum {
+	font-size: 24px;
+}
+
+.totext {
+	word-wrap: break-word;
+}
+</style>
+<script type="text/javascript">	
+//交易记录分页信息
+var pagenum = 1;
+var pagesize = 10;
+	
+	$(document).ready(function() {
+		$("input").focus(function() {
+			this.select();
+		});
+		$('#inputElement').bind('keypress', function(event) {
+			if (event.keyCode == 13) {
+				doElementInput();
+			} else if (event.keyCode == 9) {
+				return false;
+			}
+		});
+
+		if (AVRIL.stageName() == undefined || AVRIL.stageName() == null) {			
+			window.location.href = "history.html?e=1"; //无期别数据
+			return;
+		}
+		$("#stageName").html(AVRIL.stageName());
+		$('#inputElement').focus();
+		AVRIL.queryElementGoodInfo(queryElementGoodInfoBack);
+		AVRIL.initGoodsHelp(initGoodsHelpBack);
+		if (AVRIL.persionId() != undefined && AVRIL.persionId() != null) {
+			//$("#persionName").html(AVRIL.persionName());
+			AVRIL.queryPersionInfo(queryPersionInfoBack);
+			setTimeout(reloadData(), 500);			
+		}
+	});
+	
+	//初始帮助数据
+	function initGoodsHelpBack(data){
+		$helpTable = $("#helpTable");
+		$helpTable.empty(); //清空			
+		if(data!=null){
+			var itable = "";
+			for(var i=0; i<data.length; i++){	
+					itable +=("<a data-toggle=\"tooltip\" data-placement=\"top\" title=\""+data[i].goodsList+"\" class=\"card cards-condensed col-xs-3 col-sm-2 col-md-1 col-lg-1\" href=\"javascript:void(0);\">"
+							+"		 <div class=\"card-content text-muted\">"
+							+"		 	<div>"
+							+"		  		<strong class=\"eleNum\">"+(data[i].goodsKey)+"</strong>"
+							+"		    	<div class=\"pull-right eleNum\">"+data[i].goodsName+"</div>"
+							+"		  	</div>	"
+							+"<span class=\"label label-success\">"+data[i].goodsCounts+"</span>"+data[i].goodsList
+							+"		 </div>	"
+							+"</a>");					
+			}
+			$helpTable.append(itable);
+		}
+	}
+	
+	//初始页面数据
+	function queryElementGoodInfoBack(data){
+		var ihtml = "";
+		if(data!=null && data.length>0){
+			for(var i=0; i<data.length; i++){
+				ihtml+=("<a class=\"card col-xs-3 col-sm-2 col-md-1 col-lg-1\" href=\"javascript:void(0);\">"
+					+"		 <div class=\"card-content text-muted\">"
+					+"		 	<div>"
+					+"		  		<strong class=\"eleNum\">"+(data[i].element<10?"0"+data[i].element:data[i].element)+"</strong>"
+					+"		    	<div class=\"pull-right\"><img id=\"eleImg\" src=\"/images/"+data[i].colorimg+data[i].animalimg+".png\" alt=\"\" width=\"32px\" height=\"32px\"></div>"
+					+"		  	</div>	"
+					+"		 <font id=\"eleCount"+data[i].element+"\">0</font>"
+					+"		</div></a>");
+			}
+		}
+		$("#eleCards").html(ihtml);
+	}	
+
+	//加载个人数据
+	function reloadData() {
+		pagenum = 1;
+		AVRIL.queryPersionTrade(queryPersionTradeBack, pagenum, pagesize);//刷新交易历史
+		AVRIL.queryPersionTradeElement('8341', queryPersionTradeElementBack); //刷新下单情况		
+	}
+	
+	function queryPersionInfoBack(data){
+		AVRIL.setPersion(data.persionId, data.persionName);
+		$("#persionName").html(AVRIL.persionName());
+		$('#fromIDS').val(data.persionId);	
+		$('#fromPN').val(data.persionName);
+		$('#fromPK').val(data.persionKey);
+		$('#fromBonus').val(data.ratioBonus);
+		$('#fromRate').val(data.ratioRate);
+		$('#fromRate2').val(data.percentRate);
+		$('#fromNote').val(data.note==undefined?'':data.note);
+	}
+	
+	function queryPersionTradeElementBack(data){
+		if(data!=null && data.length>0){
+			for(var i=0; i<data.length; i++){
+				$("#eleCount"+data[i].element).html(data[i].efee>0?"<b>"+data[i].efee+"</b>":0);
+			}
+		}
+// 		$persionTable = $('#persionTable');
+// 		$persionTable.html('');
+// 		if(data!=null && data.length>0){
+// 			var ihtml = "";
+// 			for(var i=0; i<data.length; i++){					
+// 				ihtml+=("<tr>"
+// 						+"<td>"+(i+1)+"</td>"
+// 						+"<td>"+data[i].rebate+"</td>"
+// 						+"<td><a href=\"javascript:goUrlFromManage('"+data[i].persion_id+"','"+data[i].persion_name+"');\">"+data[i].persion_name+"</a></td>"
+// 						+"<td>"+data[i].fee+"</td>"
+// 						+"<td>"+(data[i].bonus==undefined?'--':data[i].bonus)+"</td>"
+// 						+"<td>"+(data[i].rebate_fee==undefined?'--':data[i].rebate_fee)+"</td>"							
+// 						+"<td>"+data[i].gmt_modify+"</td>"
+// 						+"</tr>");
+// 			}
+// 			$persionTable.html(ihtml);
+// 		}
+	}
+	
+	function queryPersionTradeBack(data){
+		$tradeHistoryTable = $("#tradeHistoryTable");
+		$tradeHistoryTable.html('');
+		if(data!=null && data.data!=null && data.data.length>0){
+			AVRIL.initPageBar(data.page);
+			$data = data.data;
+			var ihtml = "";
+			for(var i=0; i<$data.length; i++){
+				ihtml+=("<tr>"
+					+"<td><input type=\"hidden\" value=\""+$data[i].tradeId+"\"><span onclick=\"changTradeStatus(this);\" class=\"label "+($data[i].status!='0'?"label-danger\">作废":"label-success\">正常")+"</span>&nbsp;"+(i+1)+"</td>"
+					+"<td>"+$data[i].tradeCode+"</td>"
+					+"<td>"+$data[i].goodsName+"</td>"
+					+"<td>"+$data[i].fee+"</td>"	
+					+"<td>"+$data[i].back+"</td>"
+					+"<td>"+$data[i].gmtCreated+"</td>"
+					+"<td>"+$data[i].gmtModify+"</td>"
+					+"</tr>");
+			}
+			$tradeHistoryTable.html(ihtml);
+		}
+	}
+
+	function doElementInput() {
+		var ele = $('#inputElement').val();
+		if (ele == undefined || ele == '' || ele.legth == 0) {
+			showJLWarning('没有输入!');
+			return;
+		}
+		
+		if ('.' == ele.substr(0, 1)) {
+			//切换人员
+			var pn = ele.substr(1, ele.length - 1);
+			if (pn != null && pn.length > 0) {
+				$('#inputElement').val('');
+				AVRIL.bindPersion(pn, bindPersionBack);
+			}
+			return;
+		}else if(ele.substr(ele.length-1, ele.length)=='.'){
+			//输入中切换卡片
+			$('#tma' + ele.substr(ele.length-2, 1)).click();
+			$('#inputElement').val(ele.substr(0, ele.length-2));
+			return;
+		} else if ('-' == ele.substr(ele.length - 1)) {
+			//最后一位是. 清空输入框
+			$('#inputElement').val('');
+			return;
+		} else if (ele.length==1) {
+			if(ele=='0'){
+				window.location.href = "manage.html"; //跳转总页
+				return;
+			}
+			//切换卡片
+			$('#tma' + ele).click();//$('#tabManage'+ele).tab('show');
+			$('#inputElement').val('');
+			return;
+		}
+
+		if (AVRIL.persionId() == undefined || AVRIL.persionId() == null) {
+			showJLWarning('请先添加或切换人员,在输入框内以点号(.)开头录入后回车即可! ');
+			return;
+		}
+		AVRIL.bindTradeInfo(ele, bindTradeInfoBack);
+	}
+
+	function bindTradeInfoBack(data){
+		$('#inputElement').val('');
+		if(data!=null && data.totalFeef!=null){	
+			showJLSuccess('添加数据成功,金额：'+data.totalFeef);
+		}else if(data.totalFeef='0'){
+			showJLSuccess('用户有效数据归零。');
+		}
+		reloadData();
+	}
+	
+	
+	function bindPersionBack(data) {		
+		if(data!=null && data.persionId!=null){
+			AVRIL.setPersion(data.persionId, data.persionName);	
+			queryPersionInfoBack(data);
+			showJLSuccess('切换人员成功：'+AVRIL.persionName());
+		}else{
+			AVRIL.clearPersion();
+		}
+		$("#persionName").html(AVRIL.persionName());
+		reloadData();
+	}
+	
+	//状态
+	function changTradeStatus(th){
+		var params = {};
+		params.tradeId = $(th).prev().val();
+		params.status = 0;
+		if($(th).html()=='正常'){
+			params.status = 1;
+		}
+		AVRIL.changTradeStatus(params, changTradeStatusBack);		
+	}
+	
+	function changTradeStatusBack(data){
+		showJLSuccess('操作成功');
+		reloadData();
+	}
+	function goPage(pn){
+		pagenum = pn;
+		AVRIL.queryPersionTrade(queryPersionTradeBack, pagenum, pagesize);
+	}
+	
+	function doDataCheck(){
+		var $fromPN = $('#fromPN');
+		if($fromPN.val().length==0){
+			showJLWarning('请填写下家姓名');
+			$fromPN.focus().parent().addClass('has-error');		
+			return;
+		}
+		$fromPN.parent().removeClass('has-error');
+		
+		$fromPK = $('#fromPK');
+		if($fromPK.val().length==0){
+			showJLWarning('请填写下家快捷代码');
+			$fromPK.focus().parent().addClass('has-error');		
+			return;
+		}
+		$fromPK.parent().removeClass('has-error');
+		
+		$fromBonus = $('#fromBonus');
+		if($fromBonus.val().length==0){
+			showJLWarning('请填写下家赔率');
+			$fromBonus.focus().parent().addClass('has-error');		
+			return;
+		}
+		$fromBonus.parent().removeClass('has-error');
+		
+		
+		$fromRate = $('#fromRate');
+		if($fromRate.val().length==0){
+			showJLWarning('请填写下家返水-普通返水');
+			$fromRate.focus().parent().addClass('has-error');		
+			return;
+		}
+		$fromRate.parent().removeClass('has-error');
+		
+		$fromRate2 = $('#fromRate2');
+		if($fromRate2.val().length==0){
+			showJLWarning('请填写下家返水-包号返水');
+			$fromRate2.focus().parent().addClass('has-error');		
+			return;
+		}
+		$fromRate2.parent().removeClass('has-error');
+		
+		var obj = {};
+		obj.persionId = $('#fromIDS').val();
+		obj.persionName = $fromPN.val();
+		obj.persionKey = $fromPK.val();
+		obj.ratioBonus = $fromBonus.val();
+		obj.ratioRate = $fromRate.val();
+		obj.percentRate = $fromRate2.val();
+		obj.note = $('#fromNote').val();
+		AVRIL.savePersionInfo(savePersionInfoBack, obj);
+	}
+
+	function savePersionInfoBack(data){
+		showJLSuccess('数据设置成功!');
+		AVRIL.queryPersionInfo(queryPersionInfoBack);
+	}
+	
+</script>
+
+</head>
+
+<body>
+	<!-- 头部信息 -->
+	<div class="header">
+		<ul class="nav nav-secondary">
+			<li><a href="people.html">下家管理</a></li>
+			<li><a href="history.html">历史数据</a></li>
+			<li><a href="manage.html">数据管理</a></li>
+			<li class="active"><a href="javascript:void(0);">数据录入</a></li>
+			<li><a href="config.html">系统配置</a></li>
+		</ul>
+	</div>
+
+	<br>
+	<div class="row">
+		<div class="col-xs-0 col-sm-1 col-md-2 col-lg-3">&nbsp;</div>
+		<div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+			<div class="input-group">
+				<span class="input-group-addon"><i class="icon icon-cubes"
+					id="stageName">--</i></span> <span class="input-group-addon"><i
+					class="icon icon-user" id="persionName"></i></span> <input type="text"
+					id="inputElement" class="form-control" placeholder="快捷输入">					
+			</div>
+		</div>
+		<div class="col-xs-0 col-sm-1 col-md-2 col-lg-3">&nbsp;</div>
+	</div>
+
+	<ul class="nav nav-tabs">
+		<li class="active"><a data-tab id="tma1" href="#tabManage1">购买情况</a></li>
+		<li><a id="tma2" data-tab href="#tabManage2">交易历史</a></li>
+		<li><a id="tma3" data-tab href="#tabManage3">输入帮助</a></li>
+		<li><a id="tma4" data-tab href="#tabManage4">分类统计</a></li>
+		<li><a id="tma5" data-tab href="#tabManage5">下家信息</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active " id="tabManage1">
+			<div class="cards" id="eleCards"></div>
+		</div>
+
+		<div class="tab-pane" id="tabManage2">
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th></th>
+						<th>输入</th>
+						<th>类别</th>
+						<th>总金额</th>
+						<th>返点</th>
+						<th>添加时间</th>
+						<th>修改时间</th>
+					</tr>
+				</thead>
+				<tbody id="tradeHistoryTable">
+				</tbody>
+			</table>
+			<footer style="float:right; ">
+				<ul class="pager"></ul>	
+			</footer>
+		</div>
+
+		<div class="tab-pane" id="tabManage3">
+			<div class="cards" id="helpTable"></div>
+			<!-- <table class="table table-hover">
+  <thead>
+    <tr>
+      <th>快捷键</th>
+      <th>名称</th>
+      <th>数据量</th>
+      <th>详细</th>
+    </tr>
+  </thead>
+  <tbody id="helpTable">    
+  </tbody>  
+</table> -->
+		</div>
+
+		<div class="tab-pane" id="tabManage4"></div>
+		<div class="tab-pane" id="tabManage5">
+		<br/>
+			 <form class="form-horizontal">
+        <div class="form-group">
+        	<div class="col-xs-0 col-sm-1 col-md-1 col-lg-2"></div>
+		    <label for="fromPN" class="col-xs-2 col-sm-1 col-md-1 col-lg-1">姓名</label>
+		    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-3">
+		      <input type="hidden" class="form-control " id="fromIDS" placeholder="下家标识">
+		      <input type="text" class="form-control " id="fromPN" placeholder="下家姓名/简称">
+		    </div>		    
+		    <label for="fromPK" class="col-xs-2 col-sm-1 col-md-1 col-lg-1">代号</label>
+		    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-3">
+		      <input type="text" class="form-control" id="fromPK" data-toggle="tooltip" title="快捷代码（推荐手机后4位）" placeholder="快捷代码（推荐手机后4位）">
+		    </div>
+		    <div class="col-xs-0 col-sm-1 col-md-1 col-lg-2"></div>
+		  </div>
+		
+		  <div class="form-group">
+		  	<div class="col-xs-0 col-sm-1 col-md-1 col-lg-2"></div>
+		    <label for="fromPN" class="col-xs-2 col-sm-1 col-md-1 col-lg-1">赔率</label>
+		    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-2">
+		      <input type="text" class="form-control" id="fromBonus" data-toggle="tooltip" title="特号赔率" placeholder="特号赔率">
+		    </div>		    
+		    <label for="fromPK" class="col-xs-2 col-sm-1 col-md-1 col-lg-1">返水</label>
+		    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+		      <input type="text" class="form-control" id="fromRate" data-toggle="tooltip" title="普通返水" placeholder="普通返水">
+		    </div>
+		    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+		      <input type="text" class="form-control" id="fromRate2" data-toggle="tooltip" title="包号返水" placeholder="包号返水">
+		    </div>	
+		    <div class="col-xs-0 col-sm-1 col-md-1 col-lg-1"></div>
+		  </div>
+		  
+		  <div class="form-group">
+		 	 <div class="col-xs-0 col-sm-1 col-md-1 col-lg-2"></div>
+		    <label for="fromPK" class="col-xs-2 col-sm-1 col-md-1 col-lg-1">备注</label>
+		    <div class="col-xs-10 col-sm-9 col-md-9 col-lg-7">
+		      <input type="text" class="form-control" id="fromNote" placeholder="备注">
+		    </div>
+		    <div class="col-xs-0 col-sm-1 col-md-1 col-lg-2"></div>
+		  </div>
+		  
+	  </form>
+	  <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="doDataCheck();">保存</button>
+      </div>
+		</div>
+	</div>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.PersionMapper">
+
+<!-- Result Map-->
+<resultMap id="PersionResultMap" type="com.jing.avril.model.entity.Persion">
+	<id column="persion_id" property="persionId"/>
+	<result column="persion_name" property="persionName"/>
+	<result column="persion_key" property="persionKey"/>
+	<result column="ratio_bonus" property="ratioBonus"/>
+	<result column="ratio_rate" property="ratioRate"/>
+	<result column="percent_rate" property="percentRate"/>
+	<result column="note" property="note"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_persion_item">
+	persion_id, persion_name, persion_key, ratio_bonus, ratio_rate, percent_rate, note, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_persion_query_nowhere">
+		<if test="persion.persionId != null">AND persion_id like concat(#{persion.persionId}, '%') </if>
+		<if test="persion.persionName != null">AND (persion_name like concat('%', #{persion.persionName}, '%') or persion_key like concat('%', #{persion.persionName}, '%') ) </if>
+		<if test="persion.persionKey != null">AND persion_key like concat('%', #{persion.persionKey}, '%') </if>
+		<if test="persion.ratioBonus != null">AND ratio_bonus = #{persion.ratioBonus} </if>
+		<if test="persion.ratioRate != null">AND ratio_rate = #{persion.ratioRate} </if>
+		<if test="persion.percentRate != null">AND percent_rate = #{persion.percentRate} </if>
+		<if test="persion.note != null">AND note like concat(#{persion.note}, '%') </if>
+</sql>
+   
+<!-- 插入 下家信息 -->
+<insert id="addPersion" parameterType="com.jing.avril.model.entity.Persion" > 	
+ 	INSERT INTO tb_persion  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="persionId != null"> persion_id,</if>
+		<if test="persionName != null"> persion_name,</if>
+		<if test="persionKey != null"> persion_key,</if>
+		<if test="ratioBonus != null"> ratio_bonus,</if>
+		<if test="ratioRate != null"> ratio_rate,</if>
+		<if test="percentRate != null"> percent_rate,</if>
+		<if test="note != null"> note,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="persionId != null"> #{persionId},</if>
+		<if test="persionName != null"> #{persionName},</if>
+		<if test="persionKey != null"> #{persionKey},</if>
+		<if test="ratioBonus != null"> #{ratioBonus},</if>
+		<if test="ratioRate != null"> #{ratioRate},</if>
+		<if test="percentRate != null"> #{percentRate},</if>
+		<if test="note != null"> #{note},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 下家信息 -->  
+<update id="modifyPersion" parameterType="com.jing.avril.model.entity.Persion" >
+  	UPDATE tb_persion SET
+	<trim suffixOverrides=",">
+		<if test="persionName != null"> persion_name = #{persionName}, </if>
+		<if test="persionKey != null"> persion_key = #{persionKey}, </if>
+		<if test="ratioBonus != null"> ratio_bonus = #{ratioBonus}, </if>
+		<if test="ratioRate != null"> ratio_rate = #{ratioRate}, </if>
+		<if test="percentRate != null"> percent_rate = #{percentRate}, </if>
+		<if test="note != null"> note = #{note}, </if>
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE persion_id = #{persionId}
+</update>
+ 
+<!-- 删除 下家信息 -->
+<delete id="dropPersionByPersionId" parameterType="java.lang.String">
+	DELETE FROM tb_persion WHERE persion_id = #{persionId}
+</delete> 
+
+<!-- 根据标识查询 下家信息 -->
+<select id="queryPersionByPersionId"  resultMap="PersionResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_persion_item"/>
+	FROM tb_persion WHERE persion_id = #{persionId}
+</select>
+
+<!-- 根据属性查询下家信息 -->
+<select id="queryPersionByProperty"  resultMap="PersionResultMap" parameterType="com.jing.avril.model.entity.Persion">
+	SELECT 
+	<include refid="sql_persion_item"/>
+	FROM tb_persion 
+	<where>
+		<include refid="sql_persion_query_nowhere"/>
+		<if test="persion.persionKeyOnly != null">AND persion_key = #{persion.persionKeyOnly}</if>
+		<if test="persion.persionIdNot != null">AND persion_id != #{persion.persionIdNot}</if>
+	</where>
+</select>
+
+<!-- 根据下家信息属性与分页信息分页查询下家信息信息 -->
+<select id="queryPersionForPage"  resultMap="PersionResultMap" >
+	SELECT 
+	<include refid="sql_persion_item"/>
+	FROM tb_persion 
+	<where>
+		<include refid="sql_persion_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_persion
+</delete> 
+</mapper>   

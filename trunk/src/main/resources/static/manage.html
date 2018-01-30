@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<!-- ZUI 标准版压缩后的 CSS 文件 -->
+	<link rel="stylesheet" href="./css/zui.min.css" />
+	<!-- ZUI Javascript 依赖 jQuery -->
+	<script src="./lib/jquery/jquery.js"></script>
+	<!-- ZUI 标准版压缩后的 JavaScript 文件 -->
+	<script src="./js/zui.min.js"></script>
+	<!-- 自定义业务 JavaScript 文件 -->
+	<script src="avril.js"></script>
+<style type="text/css"> 
+.eleNum{font-size:24px; }
+.bodycontents{padding: 0 16px 0px 16px;}
+.card .card-content{padding: 0 6px 6px 6px;}
+.modal-body{ word-wrap:break-word} 
+</style> 
+<script type="text/javascript">
+//人员数据分页
+var pagenum = 1;
+var pagesize = 2;
+$(document).ready(function(){
+	if (AVRIL.stageName() == undefined || AVRIL.stageName() == null) {		
+		window.location.href = "history.html?e=1"; //无期别数据
+		return;
+	}
+	//风险金输入处理
+	$('#stageRisk').bind('keypress', function(event) {
+		if (event.keyCode == 13) {
+			var params = {};
+			params.stageRisk = $('#stageRisk').val();
+			AVRIL.saveStageInfo(params, saveStageBack);
+		}
+	}).bind('keyup', function(event){
+		var va = $(this).val().replace(/[^\d]/g,'');
+		if(va==null || va.length==0){
+			va = 0;
+		}
+		$(this).val(va);
+	}).focus(function(){
+		  this.select();
+	});
+	//特号输入处理
+	$('#stageElements').bind('keypress', function(event) {
+		if (event.keyCode == 13) {
+			var params = {};
+			params.element = $('#stageElements').val();
+			if(params.element.length==0){
+				showJLWarning('特号不允许为空');
+				return;
+			}
+			AVRIL.saveStageInfo(params, saveStageBack);
+		}
+	}).bind('keyup', function(event){
+		var va = $(this).val().replace(/[^\d]/g,'');		
+		$(this).val(va);
+	}).focus(function(){
+		  this.select();
+	});	
+	$("#stageName").html(AVRIL.stageName());		
+	AVRIL.queryElementGoodInfo(queryElementGoodInfoBack);	//初始化页面
+	AVRIL.initGoodsHelp(initGoodsHelpBack); //初始化帮助
+	
+
+});
+
+function queryPersionTradeElementBack(data){
+	if(data!=null && data.length>0){
+		for(var i=0; i<data.length; i++){
+			$("#eleCount"+data[i].element).html(data[i].efee>0?"<b>"+data[i].efee+"</b>":0);
+		}
+	}
+}
+//下家交易数据
+function queryAllPersionTradeBack(data){
+	$persionTable = $("#persionTable");
+	$persionTable.html('');
+	if(data!=null && data.data!=null && data.data.length>0){
+		AVRIL.initPageBar(data.page);
+		$data = data.data;
+		var ihtml = "";
+		for(var i=0; i<$data.length; i++){
+			ihtml+=("<tr>"
+				+"<td><input type=\"hidden\" value=\""+$data[i].tradeId+"\">"+(i+1)+"</td>"
+				+"<td>"+$data[i].persionName+"</td>"
+				+"<td>"+$data[i].persionKey+"</td>"
+				+"<td>"+$data[i].totalMoney+"</td>"
+				+"<td>"+$data[i].backMoney+"</td>"
+				+"<td>"+$data[i].bonusMoney+"</td>"
+				+"<td>"+($data[i].totalMoney-$data[i].backMoney-$data[i].bonusMoney)+"</td>"	
+				+"<td>"+$data[i].gmtModify+"</td>"
+				+"</tr>");
+		}
+		$persionTable.html(ihtml);
+	}
+}
+
+//刷新数据
+function goPage(pn){
+	pagenum = pn;
+	AVRIL.queryAllPersionTrade(queryAllPersionTradeBack, pagenum, pagesize);
+}
+//初始帮助数据
+function initGoodsHelpBack(data){
+	$helpTable = $("#helpTable");
+	$helpTable.empty(); //清空			
+	if(data!=null){
+		var itable = "";
+		for(var i=0; i<data.length; i++){	
+				itable +=("<a data-toggle=\"tooltip\" data-placement=\"top\" title=\""+data[i].goodsList+"\" class=\"card cards-condensed col-xs-3 col-sm-2 col-md-1 col-lg-1\" href=\"javascript:void(0);\">"
+						+"		 <div class=\"card-content text-muted\">"
+						+"		 	<div>"
+						+"		  		<strong class=\"eleNum\">"+(data[i].goodsKey)+"</strong>"
+						+"		    	<div class=\"pull-right eleNum\">"+data[i].goodsName+"</div>"
+						+"		  	</div>	"
+						+"<span class=\"label label-success\">"+data[i].goodsCounts+"</span>"+data[i].goodsList
+						+"		 </div>	"
+						+"</a>");					
+		}
+		$helpTable.append(itable);
+	}
+}
+
+//根据结果初始化页面
+function queryElementGoodInfoBack(data){
+	var ihtml = "";
+	if(data!=null && data.length>0){
+		for(var i=0; i<data.length; i++){
+			ihtml+=("<a class=\"card col-xs-3 col-sm-2 col-md-1 col-lg-1\" href=\"javascript:void(0);\">"
+				+"		 <div class=\"card-content text-muted\">"
+				+"		 	<div>"
+				+"		  		<strong class=\"eleNum\">"+(data[i].element<10?"0"+data[i].element:data[i].element)+"</strong>"
+				+"		    	<div class=\"pull-right\"><img id=\"eleImg\" src=\"/images/"+data[i].colorimg+data[i].animalimg+".png\" alt=\"\" width=\"32px\" height=\"32px\"></div>"
+				+"		  	</div>	"
+				+"		 <font id=\"eleCount"+data[i].element+"\">0</font>"
+				+"<input type=\"hidden\"><input type=\"text\" id=\"eleReport"+data[i].element+"\" class=\"form-control input-sm eleReport\" placeholder=\"风险金\">" 
+				+"		</div></a>");
+		}
+	}
+	$("#eleCards").html(ihtml);
+
+	$('input.eleReport').bind('keypress', function(event) {
+		if (event.keyCode == 13) {
+			doModifyReport(this);
+		}
+	}).bind('keyup', function(event){
+		var va = $(this).val().replace(/[^\d]/g,'');
+		if(va==null || va.length==0){
+			va = 0;
+		}
+		$(this).val(va);
+	}).focus(function(){
+		  this.select();
+	});
+	reloadData();
+}
+//查询期数据
+function queryStageInfoBack(data){
+	$('#stageFee').val(data.stageBill);
+	$('#stageUpFee').val(data.upBill);
+	$('#stageRisk').val(data.stageRisk);
+	$('#stageElements').val(data.element);	
+}
+
+function reloadData(){
+	pagenum = 1;
+	AVRIL.queryAllPersionTrade(queryAllPersionTradeBack, pagenum, pagesize); //人员及金额数据
+	AVRIL.queryStageInfo(queryStageInfoBack); //期别信息
+	AVRIL.queryPersionTradeElement(undefined, queryPersionTradeElementBack); //号码数据详情
+	AVRIL.loadStageDetail(loadStageDetailBack);//加载风险金
+
+}
+
+
+function goUrlFromManage(pid, pname){
+	AVRIL.setPersion(pid, pname);
+	window.location.href = "record.html";
+}
+
+function onlyNum(event) {
+    if(!(event.keyCode==46)&&!(event.keyCode==8)&&!(event.keyCode==37)&&!(event.keyCode==39))
+    if(!((event.keyCode>=48&&event.keyCode<=57)||(event.keyCode>=96&&event.keyCode<=105)))
+    event.returnValue=false;
+} 
+
+function doQueryStageBack(data){
+	if(data.bill!='0'){
+		$('#stageFee').val(data.bill);
+	}
+	$('#stageUpFee').val(data.upbill);
+	$('#stageRisk').val(data.risk);
+	if(data.element==null || data.element=='0'){
+		$('#stageElements').val('');
+	}else{
+		$('#stageElements').val(data.element);
+	}
+}
+
+function loadStageDetailBack(data){
+	for(var i=0; i<data.data.length; i++){		
+		$("#eleReport"+data.data[i].element).val(data.data[i].upbill).prev().val(data.data[i].billId);
+		//$("#eleReport"+data.data[i].element)
+	}	
+	
+}
+
+
+function saveStageBack(data){
+	showJLSuccess('更新配置成功');
+	reloadData();	
+}
+
+function doModifyReport(th){
+	var params = {};
+	params.billId = $(th).prev().val();
+	params.upbill = $(th).val();	
+	AVRIL.saveStageDetail(params, doModifyReportBack);
+}
+
+function doModifyReportBack(data){
+	reloadData();
+	showJLSuccess('更新风险成功');
+}
+
+function doLoadStageDetailBack(data){
+	if(data!=null && data.data!=null && data.data.length>0){
+		for(var i=0; i<data.data.length; i++){
+			$('#eleReport'+data.data[i].element).val(data.data[i].upbill)
+				.prev().val(data.data[i].billId);
+		}
+	}
+}
+
+function doDetailCopy(){
+	var reportText = "";
+	$("#eleCards").find('input.eleReport').each(function(i){
+		var val = $(this).val();
+		if(val!=null && val!='0'){
+			reportText+=($(this).attr('id').replace('eleReport', '')+':'+val+',');
+		}		
+	});
+	if(reportText.length>0){
+		reportText = reportText.substr(0, reportText.length-1);
+	}else{
+		reportText = "没有数据!";
+	}
+	copyToClipboard(reportText);
+}
+
+function doStageTerminator(){
+	AVRIL.goStageTerminator(goStageTerminatorBack);
+}
+
+function goStageTerminatorBack(data){
+	showJLSuccess('结算完成!');
+}
+
+
+
+function copyToClipboard(txt) {
+	   if (window.clipboardData) {
+	    window.clipboardData.clearData();
+	    clipboardData.setData("Text", txt);
+	    alert("复制成功！");
+	  
+	   } else if (navigator.userAgent.indexOf("Opera") != -1) {
+	    window.location = txt;
+	   } else if (window.netscape) {
+	    try {
+	     netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+	    } catch (e) {
+	    	$('div.modal-body').html("<p>浏览器安全设置拒绝操作粘贴板，请手工复制数据!</p>"+txt);
+	    	$('#doCheckModel').modal({
+	    	    keyboard : true,
+	    	    show     : true
+	    	});	
+	     //alert("被浏览器拒绝！\n请在浏览器地址栏输入'about:config'并回车\n然后将 'signed.applets.codebase_principal_support'设置为'true'");
+	     //alert(txt);
+	     	return;
+	    }
+	    var clip = Components.classes['@mozilla.org/widget/clipboard;1'].createInstance(Components.interfaces.nsIClipboard);
+	    if (!clip)
+	     return;
+	    var trans = Components.classes['@mozilla.org/widget/transferable;1'].createInstance(Components.interfaces.nsITransferable);
+	    if (!trans)
+	     return;
+	    trans.addDataFlavor("text/unicode");
+	    var str = new Object();
+	    var len = new Object();
+	    var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+	    var copytext = txt;
+	    str.data = copytext;
+	    trans.setTransferData("text/unicode", str, copytext.length * 2);
+	    var clipid = Components.interfaces.nsIClipboard;
+	    if (!clip)
+	     return false;
+	    clip.setData(trans, null, clipid.kGlobalClipboard);
+	    alert("复制成功！");
+	   }
+}
+</script>
+</head>
+
+<body class="bodycontents">
+<!-- 头部信息 -->
+<div class="header">
+<ul class="nav nav-secondary">
+  <li><a href="people.html">下家管理</a></li>
+  <li><a href="history.html">期号管理</a></li>
+  <li class="active"><a href="javascript:void(0);">数据管理</a></li>
+  <li><a href="record.html">数据录入</a></li>
+  <li><a href="config.html">系统配置</a></li>
+</ul>
+</div>
+<!-- 设定区 -->
+  	<div class="row">
+		<div class="col-xs-0 col-sm-0 col-md-1 col-lg-1"></div>
+	  	<div class="input-group col-xs-12 col-sm-12 col-md-10 col-lg-10">
+			<span class="input-group-addon" data-toggle="tooltip" data-placement="top" title="期号"><i class="icon icon-cubes" id="stageName">--</i></span>
+			
+		
+	  		<span class="input-group-addon" data-toggle="tooltip" data-placement="top" title="总金额"><i class="icon icon-yen" ></i></span>
+	  		<input type="text" id="stageFee" class="form-control" placeholder="总金额" readonly>
+			<span class="input-group-addon" data-toggle="tooltip" data-placement="top" title="总上报"><i class="icon icon-circle-arrow-up" ></i></span>
+			<input type="text" id="stageUpFee" class="form-control" placeholder="总上报" readonly>
+			<input type="hidden" id="detailCopy">
+			<span class="input-group-addon" data-toggle="tooltip" data-placement="top" title="风险金配置" onclick="doDetailCopy();"><i class="icon icon-trophy"></i></span>
+			<input type="text" id="stageRisk" class="form-control" placeholder="风险金">	
+			<span class="input-group-addon" data-toggle="tooltip" data-placement="top" title="特号配置"><i class="icon icon-diamond"></i></span>
+			<input type="text" id="stageElements" class="form-control" placeholder="特号">
+			<!-- span class="input-group-addon" onclick="doDetailCopy();">上报复制</span-->
+			<span class="input-group-addon" onclick="doStageTerminator()"><i class="icon icon-cloud">数据计算</i></span>
+		</div>
+	</div>
+<ul class="nav nav-tabs">
+  <li class="active"><a id="tma1" data-tab href="#tabManage1">基础信息</a></li>
+  <li><a id="tma2" data-tab href="#tabManage2">基础统计</a></li>
+  <li><a id="tma3" data-tab href="#tabManage3">人员统计</a></li>
+  <li><a id="tma4" data-tab href="#tabManage4">输入帮助</a></li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane active" id="tabManage1">  	
+  	<div class="cards " id="eleCards">		
+	</div>  
+  </div>
+  <div class="tab-pane" id="tabManage2">
+  </div>
+  <div class="tab-pane" id="tabManage3">
+	 <table class="table table-hover">
+		  <thead>
+		    <tr>
+		      <th></th>
+		      <th>下家姓名</th>
+		      <th>下家代号</th>
+		      <th>购买总额</th>
+		      <th>返利总额</th>
+		      <th>中奖金额</th>
+		      <th>结算金额</th>
+		      <th>时间</th>
+		    </tr>
+		  </thead>
+	  	<tbody id="persionTable">    
+	  	</tbody>  
+	 </table>	 
+<footer style="float:right; ">
+	<ul class="pager"></ul>	
+</footer>
+  </div>
+  <div class="tab-pane" id="tabManage4">
+  	<div class="cards" id="helpTable"></div>
+  </div>
+ </div>
+
+<!-- 提示 --> 
+<div id="doCheckModel" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+        <h4 class="modal-title">提示</h4>
+      </div>
+      <div class="modal-body">
+        <p>执行初始化会清空除配置信息外其它所有数据，请慎重考虑！</p>
+      </div>
+      <div class="modal-footer">
+      	<input type="hidden" id="stageIdForDel"></input>
+        
+        <button type="button" class="btn btn-primary" onclick="$('#doCheckModel').modal('hide');">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

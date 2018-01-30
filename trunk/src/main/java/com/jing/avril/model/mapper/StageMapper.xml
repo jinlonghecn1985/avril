@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.StageMapper">
+
+<!-- Result Map-->
+<resultMap id="StageResultMap" type="com.jing.avril.model.entity.Stage">
+	<id column="stage_id" property="stageId"/>
+	<result column="stage_name" property="stageName"/>
+	<result column="element" property="element"/>
+	<result column="status" property="status"/>
+	<result column="stage_risk" property="stageRisk"/>
+	<result column="stage_bill" property="stageBill"/>
+	<result column="stage_back" property="stageBack"/>
+	<result column="stage_gift" property="stageGift"/>
+	<result column="up_rate" property="upRate"/>
+	<result column="up_bill" property="upBill"/>
+	<result column="up_back" property="upBack"/>
+	<result column="up_gift" property="upGift"/>
+	<result column="balance" property="balance"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_stage_item">
+	stage_id, stage_name, element, status, stage_risk, stage_bill, stage_back, stage_gift, up_rate, up_bill, up_back, up_gift, balance, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_stage_query_nowhere">
+		<if test="stage.stageId != null">AND stage_id like concat(#{stage.stageId}, '%') </if>
+		<if test="stage.stageName != null">AND stage_name like concat(#{stage.stageName}, '%') </if>
+		<if test="stage.element != null">AND element = #{stage.element} </if>
+		<if test="stage.status != null">AND status = #{stage.status} </if>
+		<if test="stage.upRate != null">AND up_rate = #{stage.upRate} </if>
+</sql>
+   
+<!-- 插入 期号信息 -->
+<insert id="addStage" parameterType="com.jing.avril.model.entity.Stage" > 	
+ 	INSERT INTO tb_stage  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+	gmt_created, gmt_modify,
+		<if test="stageId != null"> stage_id,</if>
+		<if test="stageName != null"> stage_name,</if>
+		<if test="element != null"> element,</if>
+		<if test="status != null"> status,</if>
+		<if test="stageRisk != null"> stage_risk,</if>
+		<if test="stageBill != null"> stage_bill,</if>
+		<if test="stageBack != null"> stage_back,</if>
+		<if test="stageGift != null"> stage_gift,</if>
+		<if test="upRate != null"> up_rate,</if>
+		<if test="upBill != null"> up_bill,</if>
+		<if test="upBack != null"> up_back,</if>
+		<if test="upGift != null"> up_gift,</if>
+		<if test="balance != null"> balance,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+	now(), now(),
+		<if test="stageId != null"> #{stageId},</if>
+		<if test="stageName != null"> #{stageName},</if>
+		<if test="element != null"> #{element},</if>
+		<if test="status != null"> #{status},</if>
+		<if test="stageRisk != null"> #{stageRisk},</if>
+		<if test="stageBill != null"> #{stageBill},</if>
+		<if test="stageBack != null"> #{stageBack},</if>
+		<if test="stageGift != null"> #{stageGift},</if>
+		<if test="upRate != null"> #{upRate},</if>
+		<if test="upBill != null"> #{upBill},</if>
+		<if test="upBack != null"> #{upBack},</if>
+		<if test="upGift != null"> #{upGift},</if>
+		<if test="balance != null"> #{balance},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 期号信息 -->  
+<update id="modifyStage" parameterType="com.jing.avril.model.entity.Stage" >
+  	UPDATE tb_stage SET
+	<trim suffixOverrides=",">
+	gmt_modify = now(),
+		<if test="stageName != null"> stage_name = #{stageName}, </if>
+		<if test="element != null"> element = #{element}, </if>
+		<if test="status != null"> status = #{status}, </if>
+		<if test="stageRisk != null"> stage_risk = #{stageRisk}, </if>
+		<if test="stageBill != null"> stage_bill = #{stageBill}, </if>
+		<if test="stageBack != null"> stage_back = #{stageBack}, </if>
+		<if test="stageGift != null"> stage_gift = #{stageGift}, </if>
+		<if test="upRate != null"> up_rate = #{upRate}, </if>
+		<if test="upBill != null"> up_bill = #{upBill}, </if>
+		<if test="upBack != null"> up_back = #{upBack}, </if>
+		<if test="upGift != null"> up_gift = #{upGift}, </if>
+		<if test="balance != null"> balance=#{balance},</if>
+	</trim>
+	WHERE stage_id = #{stageId}
+</update>
+ 
+<!-- 删除 期号信息 -->
+<delete id="dropStageByStageId" parameterType="java.lang.String">
+	DELETE FROM tb_stage WHERE stage_id = #{stageId}
+</delete> 
+
+<!-- 根据标识查询 期号信息 -->
+<select id="queryStageByStageId"  resultMap="StageResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_stage_item"/>
+	FROM tb_stage WHERE stage_id = #{stageId}
+</select>
+
+<!-- 根据属性查询期号信息 -->
+<select id="queryStageByProperty"  resultMap="StageResultMap" parameterType="com.jing.avril.model.entity.Stage">
+	SELECT 
+	<include refid="sql_stage_item"/>
+	FROM tb_stage 
+	<where>
+		<include refid="sql_stage_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据期号信息属性与分页信息分页查询期号信息信息 -->
+<select id="queryStageForPage"  resultMap="StageResultMap" >
+	SELECT 
+	<include refid="sql_stage_item"/>
+	FROM tb_stage 
+	<where>
+		<include refid="sql_stage_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_stage
+</delete> 
+
+</mapper>   

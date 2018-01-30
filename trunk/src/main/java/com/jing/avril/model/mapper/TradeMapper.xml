@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.TradeMapper">
+
+<!-- Result Map-->
+<resultMap id="TradeResultMap" type="com.jing.avril.model.entity.Trade">
+	<id column="trade_id" property="tradeId"/>
+	<result column="trade_code" property="tradeCode"/>
+	<result column="stage_id" property="stageId"/>
+	<result column="persion_id" property="persionId"/>
+	<result column="status" property="status"/>
+	<result column="goods_id" property="goodsId"/>
+	<result column="fee" property="fee"/>
+	<result column="sfee" property="sfee"/>
+	<result column="back" property="back"/>
+	<result column="bonus" property="bonus"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_trade_item">
+	trade_id, trade_code, stage_id, persion_id, status, goods_id, fee, sfee, back, bonus, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_trade_query_nowhere">
+		<if test="trade.tradeId != null">AND trade_id like concat(#{trade.tradeId}, '%') </if>
+		<if test="trade.tradeCode != null">AND trade_code like concat(#{trade.tradeCode}, '%') </if>
+		<if test="trade.stageId != null">AND stage_id like concat(#{trade.stageId}, '%') </if>
+		<if test="trade.persionId != null">AND persion_id like concat(#{trade.persionId}, '%') </if>
+		<if test="trade.status != null">AND status = #{trade.status} </if>
+		<if test="trade.bonus != null">AND bonus = #{trade.bonus} </if>
+		<if test="trade.goodsId != null">AND goods_id like concat(#{trade.goodsId}, '%') </if>
+</sql>
+   
+<!-- 插入 交易总情况 -->
+<insert id="addTrade" parameterType="com.jing.avril.model.entity.Trade" > 	
+ 	INSERT INTO tb_trade  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="tradeId != null"> trade_id,</if>
+		<if test="tradeCode != null"> trade_code,</if>
+		<if test="stageId != null"> stage_id,</if>
+		<if test="persionId != null"> persion_id,</if>
+		<if test="status != null"> status,</if>
+		<if test="goodsId != null"> goods_id,</if>
+		<if test="fee != null"> fee,</if>
+		<if test="sfee != null"> sfee,</if>
+		<if test="back != null"> back,</if>
+		<if test="bonus != null"> bonus,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="tradeId != null"> #{tradeId},</if>
+		<if test="tradeCode != null"> #{tradeCode},</if>
+		<if test="stageId != null"> #{stageId},</if>
+		<if test="persionId != null"> #{persionId},</if>
+		<if test="status != null"> #{status},</if>
+		<if test="goodsId != null"> #{goodsId},</if>
+		<if test="fee != null"> #{fee},</if>
+		<if test="sfee != null"> #{sfee},</if>
+		<if test="back != null"> #{back},</if>
+		<if test="bonus != null"> #{bonus},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 交易总情况 -->  
+<update id="modifyTrade" parameterType="com.jing.avril.model.entity.Trade" >
+  	UPDATE tb_trade SET
+	<trim suffixOverrides=",">
+		<if test="tradeCode != null"> trade_code = #{tradeCode}, </if>
+		<if test="stageId != null"> stage_id = #{stageId}, </if>
+		<if test="persionId != null"> persion_id = #{persionId}, </if>
+		<if test="status != null"> status = #{status}, </if>
+		<if test="goodsId != null"> goods_id = #{goodsId}, </if>
+		<if test="fee != null"> fee = #{fee}, </if>
+		<if test="sfee != null"> sfee = #{sfee}, </if>
+		<if test="back != null"> back = #{back}, </if>
+		<if test="bonus != null"> bonus = #{bonus}, </if>
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE trade_id = #{tradeId}
+</update>
+<!-- 奖金归零 -->
+<update id="resetBonusZore" parameterType="string">
+	update tb_trade set bonus=0 where stage_id=#{val}
+</update>
+ 
+<!-- 删除 交易总情况 -->
+<delete id="dropTradeByTradeId" parameterType="java.lang.String">
+	DELETE FROM tb_trade WHERE trade_id = #{tradeId}
+</delete> 
+
+<!-- 根据标识查询 交易总情况 -->
+<select id="queryTradeByTradeId"  resultMap="TradeResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_trade_item"/>
+	FROM tb_trade WHERE trade_id = #{tradeId}
+</select>
+
+<!-- 根据属性查询交易总情况 -->
+<select id="queryTradeByProperty"  resultMap="TradeResultMap" parameterType="com.jing.avril.model.entity.Trade">
+	SELECT 
+	<include refid="sql_trade_item"/>
+	FROM tb_trade 
+	<where>
+		<include refid="sql_trade_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据交易总情况属性与分页信息分页查询交易总情况信息 -->
+<select id="queryTradeForPage"  resultMap="TradeResultMap" >
+	SELECT 
+	<include refid="sql_trade_item"/>
+	FROM tb_trade 
+	<where>
+		<include refid="sql_trade_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_trade
+</delete> 
+
+<!-- 根据期次删除全部信息 -->
+<delete id="clearDataOnStageId" parameterType="String">
+	DELETE FROM tb_trade where stage_id = #{val}
+</delete>
+
+<select id="queryPersionTotalFeeBackOnStageID" resultType="map">
+	select IFNULL(sum(fee), 0) as fee, IFNULL(sum(back), 0) as back, IFNULL(sum(bonus), 0) as bonus from tb_trade 
+	where status=0 
+	<if test="stageId != null"> and stage_id =#{stageId}</if>
+	<if test="persionId != null"> and persion_id=#{persionId}</if>
+</select>
+
+<select id="queryBonusTradeByElement" resultMap="TradeResultMap" >
+select <include refid="sql_trade_item"/> from (
+	select g.* from (
+		select goods_id goodsid from tb_goods_element where element_id=#{element} )
+	e LEFT OUTER JOIN ( select * from tb_trade where status=0 
+		<if test="stageId != null"> and stage_id =#{stageId}</if>
+		<if test="persionId != null"> and persion_id=#{persionId}</if>
+	) g on g.goods_id=e.goodsid
+) t where trade_id is not null
+</select>
+
+
+
+
+
+
+</mapper>   

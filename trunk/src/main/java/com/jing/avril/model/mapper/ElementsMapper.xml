@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.ElementsMapper">
+
+<!-- Result Map-->
+<resultMap id="ElementsResultMap" type="com.jing.avril.model.entity.Elements">
+	<id column="element" property="element"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_elements_item">
+	element, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_elements_query_nowhere">
+		<if test="elements.element != null">AND element = #{elements.element} </if>
+</sql>
+   
+<!-- 插入 码号信息 -->
+<insert id="addElements" parameterType="com.jing.avril.model.entity.Elements" > 	
+ 	INSERT INTO tb_elements  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="element != null"> element,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="element != null"> #{element},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 码号信息 -->  
+<update id="modifyElements" parameterType="com.jing.avril.model.entity.Elements" >
+  	UPDATE tb_elements SET
+	<trim suffixOverrides=",">
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE element = #{element}
+</update>
+ 
+<!-- 删除 码号信息 -->
+<delete id="dropElementsByElement" parameterType="java.lang.Integer">
+	DELETE FROM tb_elements WHERE element = #{element}
+</delete> 
+
+<!-- 根据标识查询 码号信息 -->
+<select id="queryElementsByElement"  resultMap="ElementsResultMap" parameterType="java.lang.Integer">
+	SELECT 
+	<include refid="sql_elements_item"/>
+	FROM tb_elements WHERE element = #{element}
+</select>
+
+<!-- 根据属性查询码号信息 -->
+<select id="queryElementsByProperty"  resultMap="ElementsResultMap" parameterType="com.jing.avril.model.entity.Elements">
+	SELECT 
+	<include refid="sql_elements_item"/>
+	FROM tb_elements 
+	<where>
+		<include refid="sql_elements_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据码号信息属性与分页信息分页查询码号信息信息 -->
+<select id="queryElementsForPage"  resultMap="ElementsResultMap" >
+	SELECT 
+	<include refid="sql_elements_item"/>
+	FROM tb_elements 
+	<where>
+		<include refid="sql_elements_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_elements
+</delete> 
+
+</mapper>   

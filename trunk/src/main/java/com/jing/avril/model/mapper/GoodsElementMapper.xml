@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.GoodsElementMapper">
+
+<!-- Result Map-->
+<resultMap id="GoodsElementResultMap" type="com.jing.avril.model.entity.GoodsElement">
+	<id column="goods_id" property="goodsId"/>
+	<result column="element_id" property="elementId"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_goodsElement_item">
+	goods_id, element_id, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_goodsElement_query_nowhere">
+		<if test="goodsElement.goodsId != null">AND goods_id like concat(#{goodsElement.goodsId}, '%') </if>
+		<if test="goodsElement.elementId != null">AND element_id = #{goodsElement.elementId} </if>
+</sql>
+   
+<!-- 插入 分组码号信息 -->
+<insert id="addGoodsElement" parameterType="com.jing.avril.model.entity.GoodsElement" > 	
+ 	INSERT INTO tb_goods_element  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="goodsId != null"> goods_id,</if>
+		<if test="elementId != null"> element_id,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="goodsId != null"> #{goodsId},</if>
+		<if test="elementId != null"> #{elementId},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 分组码号信息 -->  
+<update id="modifyGoodsElement" parameterType="com.jing.avril.model.entity.GoodsElement" >
+  	UPDATE tb_goods_element SET
+	<trim suffixOverrides=",">
+		<if test="elementId != null"> element_id = #{elementId}, </if>
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE goods_id = #{goodsId}
+</update>
+ 
+<!-- 删除 分组码号信息 -->
+<delete id="dropGoodsElementByGoodsId" parameterType="java.lang.String">
+	DELETE FROM tb_goods_element WHERE goods_id = #{goodsId}
+</delete> 
+
+<!-- 根据标识查询 分组码号信息 -->
+<select id="queryGoodsElementByGoodsId"  resultMap="GoodsElementResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_goodsElement_item"/>
+	FROM tb_goods_element WHERE goods_id = #{goodsId}
+</select>
+
+<!-- 根据属性查询分组码号信息 -->
+<select id="queryGoodsElementByProperty"  resultMap="GoodsElementResultMap" parameterType="com.jing.avril.model.entity.GoodsElement">
+	SELECT 
+	<include refid="sql_goodsElement_item"/>
+	FROM tb_goods_element 
+	<where>
+		<include refid="sql_goodsElement_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据分组码号信息属性与分页信息分页查询分组码号信息信息 -->
+<select id="queryGoodsElementForPage"  resultMap="GoodsElementResultMap" >
+	SELECT 
+	<include refid="sql_goodsElement_item"/>
+	FROM tb_goods_element 
+	<where>
+		<include refid="sql_goodsElement_query_nowhere"/>
+	</where>
+</select>
+
+<insert id="addGoodsElementsBatch" > 
+	insert into tb_goods_element (goods_id, element_id)
+	select #{goodsId}, element_id from (
+	select DISTINCT(b.element_id) as element_id from (
+	select goods_id from tb_goods where goods_name in (${goodsNames})) t
+	left outer join tb_goods_element b on t.goods_id = b.goods_id ) c order by element_id asc
+</insert>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_goods_element
+</delete> 
+
+</mapper>   

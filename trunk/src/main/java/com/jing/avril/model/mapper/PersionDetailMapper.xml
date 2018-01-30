@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.PersionDetailMapper">
+
+<!-- Result Map-->
+<resultMap id="PersionDetailResultMap" type="com.jing.avril.model.entity.PersionDetail">
+	<id column="sp_id" property="spId"/>
+	<result column="stage_id" property="stageId"/>
+	<result column="persion_id" property="persionId"/>
+	<result column="total_money" property="totalMoney"/>
+	<result column="bonus_money" property="bonusMoney"/>
+	<result column="back_money" property="backMoney"/>
+	<result column="balance" property="balance"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_persionDetail_item">
+	sp_id, stage_id, persion_id, total_money, bonus_money, back_money, balance, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_persionDetail_query_nowhere">
+		<if test="persionDetail.spId != null">AND sp_id like concat(#{persionDetail.spId}, '%') </if>
+		<if test="persionDetail.stageId != null">AND stage_id like concat(#{persionDetail.stageId}, '%') </if>
+		<if test="persionDetail.persionId != null">AND persion_id like concat(#{persionDetail.persionId}, '%') </if>
+</sql>
+   
+<!-- 插入 期别下家交易数据 -->
+<insert id="addPersionDetail" parameterType="com.jing.avril.model.entity.PersionDetail" > 	
+ 	INSERT INTO tb_persion_detail  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="spId != null"> sp_id,</if>
+		<if test="stageId != null"> stage_id,</if>
+		<if test="persionId != null"> persion_id,</if>
+		<if test="totalMoney != null"> total_money,</if>
+		<if test="bonusMoney != null"> bonus_money,</if>
+		<if test="backMoney != null"> back_money,</if>
+		<if test="balance != null"> balance,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="spId != null"> #{spId},</if>
+		<if test="stageId != null"> #{stageId},</if>
+		<if test="persionId != null"> #{persionId},</if>
+		<if test="totalMoney != null"> #{totalMoney},</if>
+		<if test="bonusMoney != null"> #{bonusMoney},</if>
+		<if test="backMoney != null"> #{backMoney},</if>
+		<if test="balance != null"> #{balance},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 期别下家交易数据 -->  
+<update id="modifyPersionDetail" parameterType="com.jing.avril.model.entity.PersionDetail" >
+  	UPDATE tb_persion_detail SET
+	<trim suffixOverrides=",">
+		gmt_modify =now(),
+		<if test="stageId != null"> stage_id = #{stageId}, </if>
+		<if test="persionId != null"> persion_id = #{persionId}, </if>
+		<if test="totalMoney != null"> total_money = #{totalMoney}, </if>
+		<if test="bonusMoney != null"> bonus_money = #{bonusMoney}, </if>
+		<if test="backMoney != null"> back_money = #{backMoney}, </if>
+		<if test="balance != null"> balance=#{balance},</if>
+	</trim>
+	WHERE sp_id = #{spId}
+</update>
+
+<update id="modifyPersionDetailByStagePerion" parameterType="com.jing.avril.model.entity.TradeDetail" >
+  	UPDATE tb_persion_detail SET
+	<trim suffixOverrides=",">
+		gmt_modify =now(),
+		<if test="totalMoney != null"> total_money = #{totalMoney}, </if>
+		<if test="bonusMoney != null"> bonus_money = #{bonusMoney}, </if>
+		<if test="backMoney != null"> back_money = #{backMoney}, </if>
+		<if test="balance != null"> balance=#{balance},</if>
+	</trim>
+	WHERE stage_id = #{stageId} and persion_id = #{persionId}
+</update>
+ 
+<!-- 删除 期别下家交易数据 -->
+<delete id="dropPersionDetailBySpId" parameterType="java.lang.String">
+	DELETE FROM tb_persion_detail WHERE sp_id = #{spId}
+</delete> 
+
+<!-- 根据标识查询 期别下家交易数据 -->
+<select id="queryPersionDetailBySpId"  resultMap="PersionDetailResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_persionDetail_item"/>
+	FROM tb_persion_detail WHERE sp_id = #{spId}
+</select>
+
+<!-- 根据属性查询期别下家交易数据 -->
+<select id="queryPersionDetailByProperty"  resultMap="PersionDetailResultMap" parameterType="com.jing.avril.model.entity.PersionDetail">
+	SELECT 
+	<include refid="sql_persionDetail_item"/>
+	FROM tb_persion_detail 
+	<where>
+		<include refid="sql_persionDetail_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据期别下家交易数据属性与分页信息分页查询期别下家交易数据信息 -->
+<select id="queryPersionDetailForPage"  resultMap="PersionDetailResultMap" >
+	SELECT 
+	<include refid="sql_persionDetail_item"/>
+	FROM tb_persion_detail 
+	<where>
+		<include refid="sql_persionDetail_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_persion_detail
+</delete> 
+
+<!-- 根据期次删除全部信息 -->
+<delete id="clearDataOnStageId" parameterType="String">
+	DELETE FROM tb_persion_detail where stage_id = #{val}
+</delete>
+</mapper>   

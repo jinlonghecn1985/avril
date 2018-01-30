@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<!-- ZUI 标准版压缩后的 CSS 文件 -->
+	<link rel="stylesheet" href="./css/zui.min.css" />
+	<!-- ZUI Javascript 依赖 jQuery -->
+	<script src="./lib/jquery/jquery.js"></script>
+	<!-- ZUI 标准版压缩后的 JavaScript 文件 -->
+	<script src="./js/zui.min.js"></script>	
+	<!-- 自定义业务 JavaScript 文件 -->
+	<script src="avril.js"></script>
+<style type="text/css"> 
+.elehidden{display: none;}
+</style> 	
+	<script type="text/javascript">	
+	var searchWord = '';
+	var pagenum = 1;
+	var pagesize = 20;
+$(document).ready(function(){ 
+	$('#searchKeyWord').bind('keypress', function(event) {
+		if (event.keyCode == 13) {
+			doSearchAction();
+		}
+	});	
+	reloadData();	
+});
+var moddelHtml = "&nbsp;&nbsp;<i onclick=\"modifyPersion2(this);\" class=\"icon icon-asterisk\"></i>&nbsp;&nbsp;<i onclick=\"deletePersion(this);\" class=\"icon icon-minus-sign\"></i>";
+
+function modifyPersion2(th){
+	modifyPersion($(th).parent().parent()[0]);
+}
+
+var deletePersionId = '';
+function deletePersion(th){
+	deletePersionId = '';
+	deletePersionId =  $(th).parent().find("input").val();
+	$('#checkModel').modal({
+	    keyboard : true,
+	    show     : true
+	});	
+	//showCheckModel('提示', '删除操作将清空下家所有数据且不可恢复,请慎重!', '删除', AVRIL.deletePersionInfo, $(th).parent().find("input").val(), deletePersionBack);
+	//AVRIL.deletePersionInfo(deletePersionBack, $(th).parent().find("input").val());
+}
+
+function doDeletePersion(){
+	AVRIL.deletePersionInfo(deletePersionBack, deletePersionId);
+}
+
+function deletePersionBack(th){
+	$('#checkModel').modal('hide');
+	reloadData();
+}
+
+function addPersion(){
+	$('#fromIDS').val('');	
+	$('#fromPN').val('');
+	$('#fromPK').val('');
+	$('#fromBonus').val('41');
+	$('#fromRate').val('13');
+	$('#fromRate2').val('2');
+	$('#fromNote').val('');
+	showInfoWindow();
+}
+function modifyPersion(th){
+	var tddata = $(th).children();
+	$('#fromIDS').val(tddata.eq(0).find("input").val());	
+	$('#fromPN').val(tddata.eq(1).html());
+	$('#fromPK').val(tddata.eq(2).html());
+	$('#fromBonus').val(tddata.eq(3).html());
+	$('#fromRate').val(tddata.eq(4).html());
+	$('#fromRate2').val(tddata.eq(5).html());
+	$('#fromNote').val(tddata.eq(6).html());
+	showInfoWindow();
+}
+function loadPersionListBack(data){	
+	if(data!=undefined && data.page!=undefined){
+		if(data.data!=undefined && data.data.length>0){
+			var ihtml = "";
+			for(var i=0; i<data.data.length; i++){
+				ihtml+=("<tr ondblclick=\"modifyPersion(this);\">"
+						+"<td>"+(data.page.startRow+i)+"<input type=\"hidden\" value=\""+data.data[i].persionId+"\">"+moddelHtml+"</td>"
+						+"<td>"+data.data[i].persionName+"</td>"
+						+"<td>"+data.data[i].persionKey+"</td>"
+						+"<td>"+data.data[i].ratioBonus+"</td>"							
+						+"<td>"+data.data[i].ratioRate+"</td>"
+						+"<td>"+data.data[i].percentRate+"</td>"
+						+"<td>"+(data.note==undefined?'':data.note)+"</td>"
+						+"<td>"+data.data[i].gmtModify+"</td>"
+						+"</tr>");
+			}	 		
+			$("#persionTable").html(ihtml);
+			AVRIL.initPageBar(data.page);
+		}
+		return;
+	}
+	AVRIL.initPageBar(null);
+	$("#persionTable").html('<tr><td colspan=\"9\"><font color=\"red\">没有查询到数据。</font></td></tr>');
+	
+}
+
+function doSearchAction(){
+	pagenum = 1;
+	searchWord = $('#searchKeyWord').val();	
+	reloadData();
+}
+function reloadData(){	
+	AVRIL.loadPersionList(loadPersionListBack, pagenum, pagesize, searchWord);	
+}
+function goPage(pn){
+	pagenum = pn;
+	reloadData();
+}
+
+function showInfoWindow(){
+	$('#infoWindow').modal({
+	    keyboard : true,
+	    show     : true
+	});	
+}
+
+function doDataCheck(){
+	var $fromPN = $('#fromPN');
+	if($fromPN.val().length==0){
+		showJLWarning('请填写下家姓名');
+		$fromPN.focus().parent().addClass('has-error');		
+		return;
+	}
+	$fromPN.parent().removeClass('has-error');
+	
+	$fromPK = $('#fromPK');
+	if($fromPK.val().length==0){
+		showJLWarning('请填写下家快捷代码');
+		$fromPK.focus().parent().addClass('has-error');		
+		return;
+	}
+	$fromPK.parent().removeClass('has-error');
+	
+	$fromBonus = $('#fromBonus');
+	if($fromBonus.val().length==0){
+		showJLWarning('请填写下家赔率');
+		$fromBonus.focus().parent().addClass('has-error');		
+		return;
+	}
+	$fromBonus.parent().removeClass('has-error');
+	
+	
+	$fromRate = $('#fromRate');
+	if($fromRate.val().length==0){
+		showJLWarning('请填写下家返水-普通返水');
+		$fromRate.focus().parent().addClass('has-error');		
+		return;
+	}
+	$fromRate.parent().removeClass('has-error');
+	
+	$fromRate2 = $('#fromRate2');
+	if($fromRate2.val().length==0){
+		showJLWarning('请填写下家返水-包号返水');
+		$fromRate2.focus().parent().addClass('has-error');		
+		return;
+	}
+	$fromRate2.parent().removeClass('has-error');
+	
+	var obj = {};
+	obj.persionId = $('#fromIDS').val();
+	obj.persionName = $fromPN.val();
+	obj.persionKey = $fromPK.val();
+	obj.ratioBonus = $fromBonus.val();
+	obj.ratioRate = $fromRate.val();
+	obj.percentRate = $fromRate2.val();
+	obj.note = $('#fromNote').val();
+	AVRIL.savePersionInfo(savePersionInfoBack, obj);
+}
+
+function savePersionInfoBack(data){
+	$('#infoWindow').modal('hide');
+	reloadData();
+}
+
+
+// function doSecBack(){
+// 	new $.zui.Messager('初始化成功! ', {
+// 		type: 'success',
+// 		placement: 'top-right',
+// 	    close: false // 禁用关闭按钮
+// 	}).show();
+// 	AVRIL.queryConfig();
+// }
+
+// function doInitSystem(){
+// 	AVRIL.initConfig(doSecBack);
+// 	$('#doCheckModel').modal('hide');
+// }
+
+
+</script>
+
+</head>
+
+<body >
+<!-- 头部信息 -->
+<div class="header">
+<ul class="nav nav-secondary">
+  <li  class="active"><a href="javascript:void(0);">下家管理</a></li>
+  <li><a href="history.html">期号管理</a></li>
+  <li><a href="manage.html">数据管理</a></li>
+  <li><a href="record.html">数据录入</a></li>
+  <li><a href="config.html">系统配置</a></li>
+</ul>
+</div>
+<br/>
+
+	<div class="row">
+		<div class="col-xs-0 col-sm-1 col-md-2 col-lg-3"></div>
+	  	<div class="input-group col-xs-12 col-sm-10 col-md-8 col-lg-6">
+			<input type="text" id="searchKeyWord" class="form-control" placeholder="名称或快捷号,快捷号建议以手机号后四位定义">
+			<span class="input-group-addon" onclick="doSearchAction();"><i class="icon icon-cloud">查询</i></span>
+		</div>
+	</div>
+<div class="row">
+	<button class="btn btn-primary" onclick="addPersion();" type="button">新增</button>
+</div>
+<table class="table table-hover">
+		  <thead>
+		    <tr>
+		      <th></th>
+		      <th>下家名称</th>
+		      <th>快捷号</th>
+		      <th>特号倍率</th>
+		      <th>普通返水</th>
+		      <th>包特返水</th>
+		      <th>备注</th>
+		      <th>修订时间</th>
+		    </tr>
+		  </thead>
+	  	<tbody id="persionTable">    
+	  	</tbody>  
+</table>
+<footer style="float:right; ">
+	<ul class="pager"></ul>	
+</footer>
+<input type="hidden" id="cdicName" value="">
+<input type="hidden" id="cdicValue" value="">
+<input type="hidden" id="cdicFlag" value="">
+<input type="hidden" id="cdicNote" value="">
+
+
+<!-- 提示 --> 
+<div id="infoWindow" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+        <h4 class="modal-title">下家操作窗口</h4>
+      </div>
+      <div class="modal-body">
+      <form class="form-horizontal">
+        <div class="form-group">
+		    <label for="fromPN" class="col-sm-1">姓名</label>
+		    <div class="col-sm-5">
+		      <input type="hidden" class="form-control " id="fromIDS" placeholder="下家标识">
+		      <input type="text" class="form-control " id="fromPN" placeholder="下家姓名/简称">
+		    </div>		    
+		    <label for="fromPK" class="col-sm-1">代号</label>
+		    <div class="col-sm-5">
+		      <input type="text" class="form-control" id="fromPK" data-toggle="tooltip" title="快捷代码（推荐手机后4位）" placeholder="快捷代码（推荐手机后4位）">
+		    </div>
+		  </div>
+		 
+		  <div class="form-group">
+		    <label for="fromPN" class="col-sm-1">赔率</label>
+		    <div class="col-sm-4">
+		      <input type="text" class="form-control" id="fromBonus" data-toggle="tooltip" title="特号赔率" placeholder="特号赔率">
+		    </div>		    
+		    <label for="fromPK" class="col-sm-1">返水</label>
+		    <div class="col-sm-3">
+		      <input type="text" class="form-control" id="fromRate" data-toggle="tooltip" title="普通返水" placeholder="普通返水">
+		    </div>
+		    <div class="col-sm-3">
+		      <input type="text" class="form-control" id="fromRate2" data-toggle="tooltip" title="包号返水" placeholder="包号返水">
+		    </div>	
+		  </div>
+		  
+		  <div class="form-group">
+		    <label for="fromPK" class="col-sm-1">备注</label>
+		    <div class="col-sm-11">
+		      <input type="text" class="form-control" id="fromNote" placeholder="备注">
+		    </div>
+		  </div>
+	  </form>
+      </div>
+      <div class="modal-footer">
+      	<input type="hidden" id="stageIdForDel"></input>
+        <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+        <button type="button" class="btn btn-primary" onclick="doDataCheck();">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="checkModel" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+        <h4 class="modal-title" id="checkTitle">温馨提示</h4>
+      </div>
+      <div id="checkContent" class="modal-body">
+        <p>删除操作将清空下家所有数据且不可恢复,请慎重!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button onclick="doDeletePersion()" type="button" class="btn btn-primary">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

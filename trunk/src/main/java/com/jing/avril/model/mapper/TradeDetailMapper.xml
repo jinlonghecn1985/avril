@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jing.avril.model.dao.TradeDetailMapper">
+
+<!-- Result Map-->
+<resultMap id="TradeDetailResultMap" type="com.jing.avril.model.entity.TradeDetail">
+	<id column="detail_id" property="detailId"/>
+	<result column="trade_id" property="tradeId"/>
+	<result column="stage_id" property="stageId"/>
+	<result column="persion_id" property="persionId"/>
+	<result column="element" property="element"/>
+	<result column="efee" property="efee"/>
+	<result column="gmt_created" property="gmtCreated"/>
+	<result column="gmt_modify" property="gmtModify"/>
+</resultMap>
+
+<sql id="sql_tradeDetail_item">
+	detail_id, trade_id, stage_id, persion_id, element, efee, gmt_created, gmt_modify
+</sql>
+       
+<!-- 查询条件 无WHERE -->
+<sql id="sql_tradeDetail_query_nowhere">
+		<if test="tradeDetail.detailId != null">AND detail_id like concat(#{tradeDetail.detailId}, '%') </if>
+		<if test="tradeDetail.tradeId != null">AND trade_id like concat(#{tradeDetail.tradeId}, '%') </if>
+		<if test="tradeDetail.stageId != null">AND stage_id like concat(#{tradeDetail.stageId}, '%') </if>
+		<if test="tradeDetail.persionId != null">AND persion_id like concat(#{tradeDetail.persionId}, '%') </if>
+		<if test="tradeDetail.element != null">AND element = #{tradeDetail.element} </if>
+</sql>
+   
+<!-- 插入 交易详细码号情况 -->
+<insert id="addTradeDetail" parameterType="com.jing.avril.model.entity.TradeDetail" > 	
+ 	INSERT INTO tb_trade_detail  	
+	<trim prefix=" (" suffix=")" suffixOverrides=",">
+		<if test="detailId != null"> detail_id,</if>
+		<if test="tradeId != null"> trade_id,</if>
+		<if test="stageId != null"> stage_id,</if>
+		<if test="persionId != null"> persion_id,</if>
+		<if test="element != null"> element,</if>
+		<if test="efee != null"> efee,</if>
+		<if test="gmtCreated != null"> gmt_created,</if>
+		<if test="gmtModify != null"> gmt_modify,</if>
+	</trim>	 	
+	<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="detailId != null"> #{detailId},</if>
+		<if test="tradeId != null"> #{tradeId},</if>
+		<if test="stageId != null"> #{stageId},</if>
+		<if test="persionId != null"> #{persionId},</if>
+		<if test="element != null"> #{element},</if>
+		<if test="efee != null"> #{efee},</if>
+		<if test="gmtCreated != null"> #{gmtCreated},</if>
+		<if test="gmtModify != null"> #{gmtModify},</if>
+	</trim>
+</insert>
+
+<!-- 根据标识，修改 交易详细码号情况 -->  
+<update id="modifyTradeDetail" parameterType="com.jing.avril.model.entity.TradeDetail" >
+  	UPDATE tb_trade_detail SET
+	<trim suffixOverrides=",">
+		<if test="tradeId != null"> trade_id = #{tradeId}, </if>
+		<if test="stageId != null"> stage_id = #{stageId}, </if>
+		<if test="persionId != null"> persion_id = #{persionId}, </if>
+		<if test="element != null"> element = #{element}, </if>
+		<if test="efee != null"> efee = #{efee}, </if>
+		<if test="gmtCreated != null"> gmt_created = #{gmtCreated}, </if>
+		<if test="gmtModify != null"> gmt_modify = #{gmtModify}, </if>
+	</trim>
+	WHERE detail_id = #{detailId}
+</update>
+
+ 
+<!-- 删除 交易详细码号情况 -->
+<delete id="dropTradeDetailByDetailId" parameterType="java.lang.String">
+	DELETE FROM tb_trade_detail WHERE detail_id = #{detailId}
+</delete> 
+
+<!-- 根据标识查询 交易详细码号情况 -->
+<select id="queryTradeDetailByDetailId"  resultMap="TradeDetailResultMap" parameterType="java.lang.String">
+	SELECT 
+	<include refid="sql_tradeDetail_item"/>
+	FROM tb_trade_detail WHERE detail_id = #{detailId}
+</select>
+
+<!-- 根据属性查询交易详细码号情况 -->
+<select id="queryTradeDetailByProperty"  resultMap="TradeDetailResultMap" parameterType="com.jing.avril.model.entity.TradeDetail">
+	SELECT 
+	<include refid="sql_tradeDetail_item"/>
+	FROM tb_trade_detail 
+	<where>
+		<include refid="sql_tradeDetail_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 根据交易详细码号情况属性与分页信息分页查询交易详细码号情况信息 -->
+<select id="queryTradeDetailForPage"  resultMap="TradeDetailResultMap" >
+	SELECT 
+	<include refid="sql_tradeDetail_item"/>
+	FROM tb_trade_detail 
+	<where>
+		<include refid="sql_tradeDetail_query_nowhere"/>
+	</where>
+</select>
+
+<!-- 清空表 -->
+<delete id="clearTableData" >
+	DELETE FROM tb_trade_detail
+</delete> 
+
+<!-- 根据期次删除全部信息 -->
+<delete id="clearDataOnStageId" parameterType="String">
+	DELETE FROM tb_trade_detail where stage_id = #{val}
+</delete>
+</mapper>   
